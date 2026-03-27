@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skill Assessments — InternHub</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<main class="assess-page">
+  <div class="assess-header">
+    <h1 class="page-title">Skill Assessments</h1>
+    <p class="page-sub" style="margin-top:6px">Prove your skills, earn a Verified badge, and get noticed by employers.</p>
+
+    <!-- Filter pills -->
+    <div class="filter-pills" style="margin-top:28px" id="assessPills"></div>
+  </div>
+
+  <div class="assess-grid" id="assessGrid"></div>
+</main>
+
+<!-- Quiz Modal -->
+<div class="modal-overlay" id="quizModal">
+  <div class="modal" style="max-width:560px">
+    <div id="quizBody"></div>
+  </div>
+</div>
+
+<div id="footer"></div>
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+const CATS = ["All","Development","Design","Data Science","Marketing","Security"];
+
+const ASSESSMENTS = [
+  { id:"fe", title:"Frontend Development", desc:"Test your knowledge of HTML, CSS, JavaScript, and React.", duration:"10 mins", questions:10, difficulty:"Intermediate", category:"Development", icon:"💻", color:"#eff6ff" },
+  { id:"ui", title:"UI/UX Design Principles", desc:"Assess your understanding of user-centred design, typography, and colour theory.", duration:"10 mins", questions:10, difficulty:"Beginner", category:"Design", icon:"🎨", color:"#fdf4ff" },
+  { id:"ds", title:"Python for Data Science", desc:"Evaluate your Python skills for data analysis, including NumPy and Pandas.", duration:"10 mins", questions:10, difficulty:"Advanced", category:"Data Science", icon:"📊", color:"#fefce8" },
+  { id:"mkt", title:"Digital Marketing", desc:"SEO, social media strategy, and content marketing fundamentals.", duration:"10 mins", questions:10, difficulty:"Beginner", category:"Marketing", icon:"📈", color:"#f0fdf4" },
+  { id:"db", title:"Database & SQL", desc:"Queries, joins, normalisation, and database design patterns.", duration:"10 mins", questions:10, difficulty:"Intermediate", category:"Development", icon:"🗄️", color:"#fff7ed" },
+  { id:"sec", title:"Cybersecurity Basics", desc:"Threats, encryption, and ethical hacking fundamentals.", duration:"10 mins", questions:10, difficulty:"Advanced", category:"Security", icon:"🔐", color:"#fef2f2" },
+];
+
+const QUESTIONS = {
+  fe: [
+    { q:"What does CSS stand for?", opts:["Cascading Style Sheets","Computer Style Sheets","Creative Style Sheets","Colorful Style Sheets"], correct:0 },
+    { q:"Which HTML tag is used for the largest heading?", opts:["<h6>","<head>","<h1>","<heading>"], correct:2 },
+    { q:"What does 'DOM' stand for?", opts:["Document Object Model","Data Object Model","Display Object Model","Document Order Model"], correct:0 },
+    { q:"Which CSS property controls text size?", opts:["text-size","font-size","text-style","font-style"], correct:1 },
+    { q:"What is the correct way to create a function in JavaScript?", opts:["function = myFunc()","function myFunc()","def myFunc()","create myFunc()"], correct:1 },
+  ],
+  ui: [
+    { q:"What is the primary goal of UX design?", opts:["Make things look pretty","Improve user satisfaction","Increase server speed","Reduce code complexity"], correct:1 },
+    { q:"What does 'wireframe' mean in design?", opts:["A metal frame","A low-fidelity layout sketch","A high-resolution mockup","A CSS grid system"], correct:1 },
+    { q:"Which colour model is used for screens?", opts:["CMYK","RGB","HSL only","Pantone"], correct:1 },
+    { q:"What is 'white space' in design?", opts:["Empty white areas","The colour white","Unused code","Margins only"], correct:0 },
+    { q:"What is a 'persona' in UX?", opts:["A login system","A fictional user profile","A font style","A colour palette"], correct:1 },
+  ],
+  default: [
+    { q:"What does API stand for?", opts:["Application Programming Interface","Automated Process Integration","Advanced Programming Index","Application Process Interface"], correct:0 },
+    { q:"Which of the following is a version control system?", opts:["Docker","Git","Linux","AWS"], correct:1 },
+    { q:"What does SQL stand for?", opts:["Structured Query Language","Simple Query Language","Standard Query Logic","Server Query Language"], correct:0 },
+    { q:"What is 'agile' in software development?", opts:["A programming language","An iterative development methodology","A database system","A cloud provider"], correct:1 },
+    { q:"What does JSON stand for?", opts:["JavaScript Object Notation","Java Standard Object Network","Just Simple Object Name","JavaScript Online Notation"], correct:0 },
+  ]
+};
+
+let currentFilter = "All";
+let currentAssessment = null;
+let qIdx = 0, score = 0;
+
+function buildPills() {
+  document.getElementById('assessPills').innerHTML = CATS.map(c =>
+    `<button class="pill ${c===currentFilter?'active':''}" onclick="setFilter('${c}')">${c}</button>`
+  ).join('');
+}
+
+function setFilter(cat) { currentFilter = cat; buildPills(); renderGrid(); }
+
+function diffBadge(d) {
+  if (d==="Beginner") return `<span class="assess-badge badge--beginner">Beginner</span>`;
+  if (d==="Intermediate") return `<span class="assess-badge badge--intermediate">Intermediate</span>`;
+  return `<span class="assess-badge badge--advanced">Advanced</span>`;
+}
+
+function renderGrid() {
+  let list = ASSESSMENTS;
+  if (currentFilter !== "All") list = list.filter(a => a.category === currentFilter);
+  document.getElementById('assessGrid').innerHTML = list.map(a => `
+    <div class="assess-card" onclick="openQuiz('${a.id}')">
+      <div class="assess-icon" style="background:${a.color}">${a.icon}</div>
+      <h3>${a.title}</h3>
+      <p>${a.desc}</p>
+      <div class="assess-meta">
+        ${diffBadge(a.difficulty)}
+        <span class="assess-badge" style="background:var(--gray-100);color:var(--gray-600)">⏱ ${a.duration}</span>
+        <span class="assess-badge" style="background:var(--gray-100);color:var(--gray-600)">❓ ${a.questions} Qs</span>
+      </div>
+      <div class="assess-card__footer">
+        <span style="font-size:12px;color:var(--gray-400)">${a.category}</span>
+        <span class="start-btn">Start <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+      </div>
+    </div>`).join('');
+}
+
+function openQuiz(id) {
+  currentAssessment = ASSESSMENTS.find(a => a.id === id);
+  qIdx = 0; score = 0;
+  showIntro();
+  document.getElementById('quizModal').classList.add('open');
+}
+
+function showIntro() {
+  const a = currentAssessment;
+  document.getElementById('quizBody').innerHTML = `
+    <div style="text-align:center;padding:12px 0">
+      <div style="font-size:48px;margin-bottom:16px">${a.icon}</div>
+      <h2 style="font-size:1.5rem;font-weight:700;margin-bottom:8px">${a.title}</h2>
+      <p style="color:var(--gray-500);margin-bottom:24px">${a.desc}</p>
+      <div style="display:flex;gap:12px;justify-content:center;margin-bottom:32px;flex-wrap:wrap">
+        <span style="padding:6px 16px;background:var(--gray-100);border-radius:99px;font-size:13px;font-weight:600">⏱ ${a.duration}</span>
+        <span style="padding:6px 16px;background:var(--gray-100);border-radius:99px;font-size:13px;font-weight:600">❓ 5 Questions</span>
+        ${diffBadge(a.difficulty)}
+      </div>
+      <button onclick="startQuiz()" style="padding:14px 40px;background:#2563eb;color:#fff;border:none;border-radius:14px;font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,.3)">Start Assessment ›</button>
+      <br><button onclick="closeQuiz()" style="margin-top:12px;padding:10px 28px;background:var(--gray-100);color:var(--gray-700);border:none;border-radius:12px;font-weight:600;cursor:pointer">Cancel</button>
+    </div>`;
+}
+
+function startQuiz() { qIdx = 0; score = 0; renderQ(); }
+
+function getQs() { return QUESTIONS[currentAssessment.id] || QUESTIONS.default; }
+
+function renderQ() {
+  const qs = getQs();
+  if (qIdx >= qs.length) { showResult(); return; }
+  const q = qs[qIdx];
+  document.getElementById('quizBody').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <span style="font-size:12px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.08em">Question ${qIdx+1} of ${qs.length}</span>
+      <div style="width:100px;height:4px;background:var(--gray-200);border-radius:99px;overflow:hidden;margin-left:12px;flex:1;max-width:120px">
+        <div style="height:100%;background:#2563eb;width:${((qIdx+1)/qs.length)*100}%;transition:width .3s;border-radius:99px"></div>
+      </div>
+    </div>
+    <h3 style="font-size:17px;font-weight:700;margin-bottom:24px;line-height:1.4;color:var(--gray-900)">${q.q}</h3>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      ${q.opts.map((o,i) => `<button onclick="answer(${i})" style="width:100%;padding:14px 18px;border-radius:12px;border:2px solid var(--gray-200);background:#fff;font-size:14px;font-weight:500;text-align:left;cursor:pointer;transition:all .15s;color:var(--gray-900)" onmouseover="this.style.borderColor='#2563eb';this.style.color='#2563eb'" onmouseout="this.style.borderColor='var(--gray-200)';this.style.color='var(--gray-900)'">${o}</button>`).join('')}
+    </div>`;
+}
+
+function answer(idx) {
+  const qs = getQs();
+  if (idx === qs[qIdx].correct) score++;
+  qIdx++;
+  renderQ();
+}
+
+function showResult() {
+  const qs = getQs();
+  const pct = Math.round((score / qs.length) * 100);
+  const passed = pct >= 75;
+  document.getElementById('quizBody').innerHTML = `
+    <div style="text-align:center;padding:12px 0">
+      <div style="width:80px;height:80px;border-radius:50%;background:${passed?'#dcfce7':'#fee2e2'};display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px">${passed?'🏆':'❌'}</div>
+      <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:8px">${passed?'Excellent Work!':'Keep Practising!'}</h2>
+      <p style="color:var(--gray-500);margin-bottom:8px">You scored <strong style="color:${passed?'#16a34a':'#dc2626'}">${pct}%</strong> (${score}/${qs.length} correct)</p>
+      <p style="font-size:13px;color:var(--gray-400);margin-bottom:32px">Passing score: 75%</p>
+      ${passed ? `<div style="padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;margin-bottom:24px">
+        <p style="font-weight:700;color:#15803d;font-size:14px">✅ Verified badge earned for ${currentAssessment.title}!</p>
+      </div>` : ''}
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button onclick="startQuiz()" style="padding:12px 28px;background:#2563eb;color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer">${passed?'Retake':'Try Again'}</button>
+        <button onclick="closeQuiz()" style="padding:12px 28px;background:var(--gray-100);color:var(--gray-700);border:none;border-radius:12px;font-weight:700;cursor:pointer">Close</button>
+      </div>
+    </div>`;
+}
+
+function closeQuiz() { document.getElementById('quizModal').classList.remove('open'); }
+
+buildPills();
+renderGrid();
+</script>
+</body>
+</html>

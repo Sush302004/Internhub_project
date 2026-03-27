@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Applications — InternHub</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<main class="apps-page">
+  <h1>My Applications</h1>
+  <p>Track the status of all your internship applications in one place.</p>
+
+  <!-- Status tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap" id="statusTabs"></div>
+
+  <div id="appsList"></div>
+</main>
+
+<div id="footer"></div>
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+const APPS = [
+  { id:1, title:"Frontend Developer Intern", company:"TechVision India", location:"Bangalore", type:"Remote", status:"interview", appliedAt:"Mar 20, 2026", logo:"T" },
+  { id:2, title:"UI/UX Design Intern", company:"DesignLab", location:"Mumbai", type:"Hybrid", status:"applied", appliedAt:"Mar 18, 2026", logo:"D" },
+  { id:3, title:"Data Science Intern", company:"Analytics Pro", location:"Hyderabad", type:"Remote", status:"offered", appliedAt:"Mar 10, 2026", logo:"A" },
+  { id:4, title:"Marketing Intern", company:"BrandBoost", location:"Delhi", type:"On-site", status:"rejected", appliedAt:"Mar 5, 2026", logo:"B" },
+  { id:5, title:"Backend Developer Intern", company:"CloudSystems", location:"Pune", type:"Remote", status:"applied", appliedAt:"Mar 22, 2026", logo:"C" },
+];
+
+const STATUS_LABELS = { applied:"Applied", interview:"Interview", offered:"Offered 🎉", rejected:"Rejected" };
+const STATUS_CLASSES = { applied:"status--applied", interview:"status--interview", offered:"status--offered", rejected:"status--rejected" };
+
+let activeTab = "All";
+
+function buildTabs() {
+  const tabs = ["All", "Applied", "Interview", "Offered", "Rejected"];
+  const counts = {};
+  tabs.forEach(t => { counts[t] = t === "All" ? APPS.length : APPS.filter(a => a.status === t.toLowerCase()).length; });
+
+  document.getElementById('statusTabs').innerHTML = tabs.map(t =>
+    `<button onclick="setTab('${t}')" style="padding:8px 20px;border-radius:99px;font-size:13px;font-weight:700;border:1.5px solid ${activeTab===t?'#2563eb':'var(--gray-200)'};background:${activeTab===t?'#2563eb':'#fff'};color:${activeTab===t?'#fff':'var(--gray-600)'};cursor:pointer;transition:all .15s">
+      ${t} <span style="opacity:.7">(${counts[t]})</span>
+    </button>`
+  ).join('');
+}
+
+function setTab(t) { activeTab = t; buildTabs(); renderApps(); }
+
+function renderApps() {
+  let list = APPS;
+  if (activeTab !== "All") list = APPS.filter(a => a.status === activeTab.toLowerCase());
+
+  if (list.length === 0) {
+    document.getElementById('appsList').innerHTML = `
+      <div style="text-align:center;padding:60px 20px;background:#fff;border-radius:24px;border:1px solid var(--gray-200)">
+        <div style="font-size:40px;margin-bottom:16px">📭</div>
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:8px">No ${activeTab.toLowerCase()} applications</h3>
+        <p style="color:var(--gray-500)"><a href="/internships/" style="color:#2563eb;font-weight:700">Browse internships</a> and apply today.</p>
+      </div>`;
+    return;
+  }
+
+  document.getElementById('appsList').innerHTML = list.map(a => `
+    <div class="app-card">
+      <div class="app-logo">${a.logo}</div>
+      <div class="app-info">
+        <h3>${a.title}</h3>
+        <div class="company">${a.company} • ${a.location} • ${a.type}</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span class="app-status ${STATUS_CLASSES[a.status]}">${STATUS_LABELS[a.status]}</span>
+          <span style="font-size:12px;color:var(--gray-400)">Applied ${a.appliedAt}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0">
+        <a href="/internships/" style="padding:8px 16px;background:var(--gray-100);color:var(--gray-700);border-radius:10px;font-size:13px;font-weight:700;transition:all .15s" onmouseover="this.style.background='var(--blue-light)';this.style.color='#2563eb'" onmouseout="this.style.background='var(--gray-100)';this.style.color='var(--gray-700)'">View</a>
+        ${a.status === 'applied' ? `<button onclick="withdraw(${a.id})" style="padding:8px 16px;background:var(--red-light);color:#b91c1c;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer">Withdraw</button>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function withdraw(id) {
+  if (!confirm("Withdraw this application?")) return;
+  const idx = APPS.findIndex(a => a.id === id);
+  if (idx !== -1) APPS.splice(idx, 1);
+  buildTabs(); renderApps();
+}
+
+buildTabs();
+renderApps();
+</script>
+</body>
+</html>

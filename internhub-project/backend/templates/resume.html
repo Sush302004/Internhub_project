@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Resume Analyzer — InternHub</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<main class="resume-page">
+  <div class="resume-inner">
+    <div class="resume-header">
+      <div class="ai-badge">✨ AI-Powered Analysis</div>
+      <h1>Resume Analyzer</h1>
+      <p>Upload your resume and get instant AI-driven feedback to improve your chances of landing your dream internship.</p>
+    </div>
+
+    <!-- Upload Zone -->
+    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="handleDrag(event)" ondragleave="removeDrag(event)" ondrop="handleDrop(event)">
+      <div class="upload-icon">📄</div>
+      <h3>Drop your resume here</h3>
+      <p>Supports PDF, DOCX, DOC • Max 5 MB</p>
+      <input type="file" id="fileInput" accept=".pdf,.docx,.doc" onchange="handleFile(event)"/>
+      <button style="margin-top:20px;padding:10px 28px;background:#2563eb;color:#fff;border:none;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer" onclick="event.stopPropagation();document.getElementById('fileInput').click()">Choose File</button>
+    </div>
+
+    <div id="fileInfo" style="display:none" class="file-selected">
+      <span style="font-size:22px">📎</span>
+      <div style="flex:1">
+        <div id="fileName" style="font-weight:700;font-size:14px;color:#1e3a8a"></div>
+        <div id="fileSize" style="font-size:12px;color:#3b82f6"></div>
+      </div>
+      <button onclick="clearFile()" style="padding:6px 14px;background:rgba(37,99,235,.1);border:none;border-radius:8px;color:#2563eb;font-weight:700;font-size:13px;cursor:pointer">Remove</button>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeResume()" disabled>
+      ✨ Analyze Resume
+    </button>
+
+    <!-- Results -->
+    <div id="results" style="display:none;margin-top:40px"></div>
+  </div>
+</main>
+
+<div id="footer"></div>
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+let selectedFile = null;
+
+function handleDrag(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
+function removeDrag(e) { document.getElementById('uploadZone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  removeDrag(e);
+  const f = e.dataTransfer.files[0];
+  if (f) setFile(f);
+}
+
+function handleFile(e) { if (e.target.files[0]) setFile(e.target.files[0]); }
+
+function setFile(f) {
+  selectedFile = f;
+  document.getElementById('uploadZone').style.display = 'none';
+  const info = document.getElementById('fileInfo');
+  info.style.display = 'flex';
+  document.getElementById('fileName').textContent = f.name;
+  document.getElementById('fileSize').textContent = (f.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('analyzeBtn').disabled = false;
+  document.getElementById('results').style.display = 'none';
+}
+
+function clearFile() {
+  selectedFile = null;
+  document.getElementById('uploadZone').style.display = '';
+  document.getElementById('fileInfo').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+}
+
+function analyzeResume() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<span style="display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></span> Analysing...`;
+
+  // Simulate AI analysis (replace with real API call in production)
+  setTimeout(() => {
+    const mockResult = {
+      score: Math.floor(Math.random() * 25) + 68,
+      keywordMatch: Math.floor(Math.random() * 30) + 55,
+      summary: `Your resume shows solid foundational skills and relevant experience. The structure is clear, but adding quantifiable achievements and industry-specific keywords will significantly improve your chances with ATS systems and recruiters.`,
+      strengths: ["Clear, readable formatting", "Relevant technical skills listed", "Education section well-structured", "Contact information complete"],
+      improvements: ["Add measurable impact numbers (e.g. 'improved load time by 40%')", "Include more internship-specific keywords", "Add a professional summary at the top", "Expand project descriptions with tech stack and outcomes"],
+    };
+    showResults(mockResult);
+    btn.disabled = false;
+    btn.innerHTML = '✨ Analyze Resume';
+  }, 2200);
+}
+
+function showResults(r) {
+  const res = document.getElementById('results');
+  const scoreColor = r.score >= 80 ? '#16a34a' : r.score >= 60 ? '#d97706' : '#dc2626';
+  const scoreLabel = r.score >= 80 ? 'Strong' : r.score >= 60 ? 'Good' : 'Needs Work';
+
+  res.style.display = '';
+  res.innerHTML = `
+    <div style="background:#fff;border:1px solid var(--gray-200);border-radius:24px;padding:32px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:24px">
+        <div style="text-align:center;background:var(--gray-50);border-radius:18px;padding:24px 32px;min-width:140px">
+          <div style="font-size:3rem;font-weight:800;color:${scoreColor};font-family:'Syne',sans-serif">${r.score}</div>
+          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray-400)">Resume Score</div>
+          <div style="font-size:13px;font-weight:700;color:${scoreColor};margin-top:4px">${scoreLabel}</div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px"><span>Keyword Match</span><span style="color:${scoreColor}">${r.keywordMatch}%</span></div>
+            <div style="height:8px;background:var(--gray-100);border-radius:99px;overflow:hidden"><div style="height:100%;background:${scoreColor};width:${r.keywordMatch}%;border-radius:99px;transition:width 1s"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:6px"><span>ATS Compatibility</span><span style="color:#2563eb">${Math.min(r.score + 5, 100)}%</span></div>
+            <div style="height:8px;background:var(--gray-100);border-radius:99px;overflow:hidden"><div style="height:100%;background:#2563eb;width:${Math.min(r.score+5,100)}%;border-radius:99px;transition:width 1s"></div></div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:14px;color:var(--gray-600);line-height:1.7;padding:16px;background:var(--gray-50);border-radius:12px">${r.summary}</p>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:24px">
+        <h3 style="font-size:14px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">✅ Strengths</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          ${r.strengths.map(s => `<li style="font-size:13px;color:#166534;display:flex;gap:8px;align-items:flex-start"><span style="flex-shrink:0;margin-top:2px">●</span>${s}</li>`).join('')}
+        </ul>
+      </div>
+      <div style="background:#fef9c3;border:1px solid #fde68a;border-radius:20px;padding:24px">
+        <h3 style="font-size:14px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px">🔧 Improvements</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:10px">
+          ${r.improvements.map(i => `<li style="font-size:13px;color:#78350f;display:flex;gap:8px;align-items:flex-start"><span style="flex-shrink:0;margin-top:2px">●</span>${i}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+
+    <button onclick="clearFile()" style="width:100%;padding:14px;background:var(--gray-900);color:#fff;border:none;border-radius:14px;font-weight:700;font-size:14px;cursor:pointer">Analyze Another Resume</button>
+  `;
+}
+</script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</body>
+</html>

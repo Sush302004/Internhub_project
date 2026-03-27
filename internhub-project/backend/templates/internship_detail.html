@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Internship Details — InternHub</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+  <style>
+    .detail-hero { background: var(--gray-900); color: #fff; padding: 48px 0 40px; }
+    .detail-hero__inner { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .detail-back { display: inline-flex; align-items: center; gap: 6px; color: var(--gray-400); font-size: 14px; font-weight: 600; margin-bottom: 24px; text-decoration: none; transition: color .15s; }
+    .detail-back:hover { color: #fff; }
+    .detail-header { display: flex; align-items: flex-start; gap: 20px; }
+    .detail-logo { width: 64px; height: 64px; background: var(--blue); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800; color: #fff; flex-shrink: 0; }
+    .detail-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; }
+    .detail-company { color: var(--gray-400); font-size: 15px; font-weight: 500; }
+    .detail-badges { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .badge { padding: 5px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge--blue { background: rgba(37,99,235,.25); color: #93c5fd; }
+    .badge--green { background: rgba(16,185,129,.2); color: #6ee7b7; }
+    .badge--gray { background: rgba(255,255,255,.1); color: var(--gray-300); }
+
+    .detail-body { max-width: 960px; margin: 0 auto; padding: 40px 24px; display: grid; grid-template-columns: 1fr 300px; gap: 32px; }
+    @media(max-width:700px){ .detail-body { grid-template-columns: 1fr; } }
+
+    .detail-section { background: #fff; border: 1px solid var(--gray-200); border-radius: 20px; padding: 28px; margin-bottom: 24px; }
+    .detail-section h2 { font-size: 1.1rem; font-weight: 800; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-100); }
+    .detail-section p, .detail-section li { font-size: 15px; color: var(--gray-600); line-height: 1.7; }
+    .detail-section ul { padding-left: 20px; }
+    .detail-section li { margin-bottom: 6px; }
+
+    .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .meta-box { background: var(--gray-50); border-radius: 12px; padding: 14px 16px; }
+    .meta-box__label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gray-400); margin-bottom: 4px; }
+    .meta-box__val { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+
+    .skills-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .apply-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 20px; padding: 28px; position: sticky; top: 88px; }
+    .apply-card h3 { font-size: 1rem; font-weight: 800; margin-bottom: 6px; }
+    .apply-card p { font-size: 13px; color: var(--gray-500); margin-bottom: 20px; line-height: 1.5; }
+    .apply-btn { width: 100%; padding: 14px; background: var(--blue); color: #fff; font-size: 15px; font-weight: 700; border-radius: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--shadow-blue); transition: all .2s; border: none; cursor: pointer; }
+    .apply-btn:hover { background: var(--blue-dark); transform: translateY(-1px); }
+    .save-btn { width: 100%; padding: 13px; background: #fff; border: 1.5px solid var(--gray-200); color: var(--gray-700); font-size: 14px; font-weight: 700; border-radius: 14px; margin-top: 10px; cursor: pointer; transition: all .15s; }
+    .save-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--gray-900); color: #fff; padding: 14px 28px; border-radius: 14px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 32px rgba(0,0,0,.25); transition: transform .3s ease; z-index: 999; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="detail-hero">
+  <div class="detail-hero__inner">
+    <a href="/internships/" class="detail-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Back to Internships
+    </a>
+    <div class="detail-header">
+      <div class="detail-logo" id="detailLogo"></div>
+      <div>
+        <div class="detail-title" id="detailTitle">Loading...</div>
+        <div class="detail-company" id="detailCompany"></div>
+        <div class="detail-badges" id="detailBadges"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="detail-body">
+  <div>
+    <!-- Overview -->
+    <div class="detail-section">
+      <h2>📋 Internship Overview</h2>
+      <div class="meta-grid" id="metaGrid"></div>
+    </div>
+
+    <!-- About -->
+    <div class="detail-section">
+      <h2>🏢 About the Role</h2>
+      <p id="aboutRole"></p>
+    </div>
+
+    <!-- Responsibilities -->
+    <div class="detail-section">
+      <h2>✅ Key Responsibilities</h2>
+      <ul id="responsibilities"></ul>
+    </div>
+
+    <!-- Requirements -->
+    <div class="detail-section">
+      <h2>🎯 Requirements</h2>
+      <ul id="requirements"></ul>
+    </div>
+
+    <!-- Skills -->
+    <div class="detail-section">
+      <h2>🛠️ Skills Required</h2>
+      <div class="skills-wrap" id="skillsWrap"></div>
+    </div>
+  </div>
+
+  <!-- Sidebar apply card -->
+  <div>
+    <div class="apply-card">
+      <h3>Ready to Apply?</h3>
+      <p>Submit your application now. Shortlisted candidates will be contacted within 3–5 business days.</p>
+      <button class="apply-btn" onclick="applyNow()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        Apply Now
+      </button>
+      <button class="save-btn" onclick="saveInternship()">
+        ♡ Save for Later
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="footer"></div>
+<script src="{% static 'js/app.js' %}"></script>
+<script>
+const MOCK_INTERNSHIPS = [
+  { id:1, title:"Frontend Developer Intern", company:"TechVision India", location:"Bangalore", duration:"3 months", stipend:"₹15,000/mo", type:"Remote", category:"Engineering", skills:["React","CSS","JavaScript"], postedAt:"2 days ago",
+    about:"TechVision India is a fast-growing product company building the next generation of B2B SaaS tools. As a Frontend Developer Intern, you will work alongside our core engineering team to build beautiful, responsive, and performant user interfaces.",
+    responsibilities:["Build and maintain React components for our web application","Collaborate with designers to implement pixel-perfect UI from Figma","Write clean, reusable, and well-documented code","Participate in daily standups and sprint planning","Debug and fix cross-browser compatibility issues"],
+    requirements:["Basic knowledge of React or any frontend framework","Familiarity with HTML, CSS, and JavaScript ES6+","Understanding of responsive design principles","Good communication skills","Currently pursuing B.Tech/MCA or equivalent"]
+  },
+  { id:2, title:"UI/UX Design Intern", company:"DesignLab", location:"Mumbai", duration:"2 months", stipend:"₹12,000/mo", type:"Hybrid", category:"Design", skills:["Figma","Sketch","Prototyping"], postedAt:"1 day ago",
+    about:"DesignLab is a boutique design agency working with startups and Fortune 500 companies. You will assist our senior designers in crafting intuitive user experiences across web and mobile platforms.",
+    responsibilities:["Create wireframes, prototypes, and high-fidelity mockups in Figma","Conduct user research and usability testing sessions","Collaborate with the development team to ensure design feasibility","Maintain and update the design system","Present design concepts to stakeholders"],
+    requirements:["Proficiency in Figma or Adobe XD","Understanding of UX principles and design thinking","A portfolio showcasing at least 2–3 projects","Attention to detail and visual aesthetics","Ability to take and incorporate feedback"]
+  },
+  { id:3, title:"Data Science Intern", company:"Analytics Pro", location:"Hyderabad", duration:"6 months", stipend:"₹20,000/mo", type:"Remote", category:"Data Science", skills:["Python","SQL","Pandas"], postedAt:"3 days ago",
+    about:"Analytics Pro helps enterprises make data-driven decisions. As a Data Science Intern, you will work on real datasets to extract insights, build models, and create dashboards that directly impact business strategy.",
+    responsibilities:["Clean and preprocess large datasets using Python and Pandas","Build and evaluate machine learning models","Write SQL queries to extract and analyse data","Create visualisations using Matplotlib or Tableau","Document findings in clear business reports"],
+    requirements:["Strong Python programming skills","Knowledge of SQL and relational databases","Familiarity with Scikit-learn or similar ML libraries","Understanding of statistics and probability","Currently in 3rd/4th year of B.Tech CS/IT or equivalent"]
+  },
+  { id:4, title:"Marketing Intern", company:"BrandBoost", location:"Delhi", duration:"3 months", stipend:"₹8,000/mo", type:"On-site", category:"Marketing", skills:["SEO","Social Media","Canva"], postedAt:"5 days ago",
+    about:"BrandBoost is a digital marketing agency with clients across e-commerce, healthcare, and education. You will support our marketing team in running campaigns, managing social media, and growing organic traffic.",
+    responsibilities:["Manage and schedule social media posts across platforms","Assist in SEO keyword research and on-page optimisation","Create graphics using Canva for campaigns","Track campaign performance using Google Analytics","Draft email newsletters and blog content"],
+    requirements:["Basic understanding of digital marketing concepts","Familiarity with Instagram, LinkedIn, and Facebook for business","Experience with Canva or similar design tools","Good written English","Self-motivated and creative mindset"]
+  },
+  { id:5, title:"Backend Developer Intern", company:"CloudSystems", location:"Pune", duration:"4 months", stipend:"₹18,000/mo", type:"Remote", category:"Engineering", skills:["Node.js","Python","Docker"], postedAt:"1 week ago",
+    about:"CloudSystems builds scalable cloud-native infrastructure for enterprise clients. You will contribute to our backend services, helping build APIs, microservices, and automated pipelines.",
+    responsibilities:["Develop and maintain RESTful APIs using Node.js or Python","Write unit and integration tests","Work with Docker containers and deployment pipelines","Optimise database queries (PostgreSQL/MongoDB)","Participate in code reviews and technical discussions"],
+    requirements:["Proficiency in Node.js or Python","Basic understanding of REST API design","Familiarity with Git and version control","Knowledge of SQL or NoSQL databases","Interest in cloud platforms (AWS/GCP is a plus)"]
+  },
+  { id:6, title:"AI/ML Intern", company:"DeepMind Labs", location:"Bangalore", duration:"6 months", stipend:"₹25,000/mo", type:"Remote", category:"AI/ML", skills:["Python","TensorFlow","NLP"], postedAt:"2 days ago",
+    about:"DeepMind Labs is an AI research company building cutting-edge NLP and computer vision solutions. As an AI/ML Intern, you will work directly with research engineers on live model training, evaluation, and deployment pipelines.",
+    responsibilities:["Train and fine-tune deep learning models using TensorFlow/PyTorch","Preprocess and augment text and image datasets","Evaluate model performance and write detailed reports","Research and implement papers from top AI conferences","Support MLOps and model deployment workflows"],
+    requirements:["Strong Python skills with experience in ML frameworks","Understanding of neural networks and deep learning","Familiarity with NLP concepts (tokenisation, embeddings, transformers)","Knowledge of linear algebra and calculus","Published projects or Kaggle experience is a bonus"]
+  },
+  { id:7, title:"Finance Analyst Intern", company:"CapitalEdge", location:"Mumbai", duration:"3 months", stipend:"₹10,000/mo", type:"On-site", category:"Finance", skills:["Excel","Tableau","Accounting"], postedAt:"4 days ago",
+    about:"CapitalEdge is a financial advisory firm serving mid-market companies. You will assist our analysts in financial modelling, research, and client reporting.",
+    responsibilities:["Build and maintain Excel financial models","Analyse balance sheets, P&L statements, and cash flow reports","Prepare Tableau dashboards for client presentations","Assist in research reports on industry trends","Support senior analysts in client meetings"],
+    requirements:["Pursuing B.Com, BBA, or MBA Finance","Strong Excel skills (VLOOKUP, Pivot Tables, charts)","Basic understanding of accounting principles","Attention to accuracy and detail","Good presentation and communication skills"]
+  },
+  { id:8, title:"HR Intern", company:"PeopleFirst", location:"Chennai", duration:"2 months", stipend:"₹6,000/mo", type:"Hybrid", category:"HR", skills:["Recruitment","Excel","Communication"], postedAt:"6 days ago",
+    about:"PeopleFirst is an HR consulting firm helping companies hire and retain top talent. You will support our recruiters and HR business partners across the full employee lifecycle.",
+    responsibilities:["Source and screen candidates via job portals and LinkedIn","Schedule and coordinate interviews","Maintain and update employee records in Excel/HRMS","Draft job descriptions and offer letters","Assist in onboarding documentation and orientation"],
+    requirements:["Pursuing MBA HR or BBA","Good interpersonal and written communication skills","Basic Excel proficiency","Organised and detail-oriented","Ability to handle confidential information responsibly"]
+  },
+];
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function applyNow() {
+  const user = getUser();
+  if (!user) { window.location.href = '/login/'; return; }
+  // Save to applications in sessionStorage
+  const internship = getCurrentInternship();
+  if (!internship) return;
+  const apps = JSON.parse(sessionStorage.getItem('ih_applications') || '[]');
+  if (apps.find(a => a.id === internship.id)) { showToast('Already applied!'); return; }
+  apps.push({ ...internship, appliedAt: new Date().toLocaleDateString() });
+  sessionStorage.setItem('ih_applications', JSON.stringify(apps));
+  showToast('✅ Application submitted successfully!');
+}
+
+function saveInternship() {
+  showToast('♡ Saved to your wishlist!');
+}
+
+function getCurrentInternship() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const id = parseInt(parts[parts.length - 1]);
+  return MOCK_INTERNSHIPS.find(i => i.id === id) || null;
+}
+
+function loadDetail() {
+  const internship = getCurrentInternship();
+  if (!internship) {
+    document.getElementById('detailTitle').textContent = 'Internship not found';
+    return;
+  }
+
+  document.title = `${internship.title} — InternHub`;
+
+  const initials = internship.company.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('detailLogo').textContent = initials;
+  document.getElementById('detailTitle').textContent = internship.title;
+  document.getElementById('detailCompany').textContent = internship.company + ' · ' + internship.location;
+
+  document.getElementById('detailBadges').innerHTML = `
+    <span class="badge badge--blue">${internship.type}</span>
+    <span class="badge badge--green">${internship.stipend}</span>
+    <span class="badge badge--gray">${internship.duration}</span>
+    <span class="badge badge--gray">Posted ${internship.postedAt}</span>
+  `;
+
+  document.getElementById('metaGrid').innerHTML = `
+    <div class="meta-box"><div class="meta-box__label">Location</div><div class="meta-box__val">${internship.location}</div></div>
+    <div class="meta-box"><div class="meta-box__label">Duration</div><div class="meta-box__val">${internship.duration}</div></div>
+    <div class="meta-box"><div class="meta-box__label">Stipend</div><div class="meta-box__val">${internship.stipend}</div></div>
+    <div class="meta-box"><div class="meta-box__label">Work Type</div><div class="meta-box__val">${internship.type}</div></div>
+    <div class="meta-box"><div class="meta-box__label">Category</div><div class="meta-box__val">${internship.category}</div></div>
+    <div class="meta-box"><div class="meta-box__label">Posted</div><div class="meta-box__val">${internship.postedAt}</div></div>
+  `;
+
+  document.getElementById('aboutRole').textContent = internship.about;
+  document.getElementById('responsibilities').innerHTML = internship.responsibilities.map(r => `<li>${r}</li>`).join('');
+  document.getElementById('requirements').innerHTML = internship.requirements.map(r => `<li>${r}</li>`).join('');
+  document.getElementById('skillsWrap').innerHTML = internship.skills.map(s => `<span class="skill-tag">${s}</span>`).join('');
+}
+
+loadDetail();
+</script>
+</body>
+</html>
